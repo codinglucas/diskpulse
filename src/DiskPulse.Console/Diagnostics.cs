@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
+using DiskPulse.Core;
 using DiskPulse.Windows;
 
 namespace DiskPulse.ConsoleApp;
@@ -28,9 +29,9 @@ internal static class Diagnostics
         }
         Console.WriteLine();
 
-        var disks = new WmiDiskInfoProvider().GetDisks();
-        Console.WriteLine($"Disks from WMI: {disks.Count}");
-        foreach (var disk in disks.Values.OrderBy(d => d.Number))
+        var disks = new DiskInfoCache(new WmiDiskInfoProvider());
+        Console.WriteLine($"Disks from WMI: {disks.Disks.Count}");
+        foreach (var disk in disks.Disks.Values.OrderBy(d => d.Number))
             Console.WriteLine($"  {disk.Label}");
         Console.WriteLine();
 

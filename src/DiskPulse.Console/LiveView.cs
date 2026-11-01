@@ -8,7 +8,7 @@ internal static class LiveView
     public static async Task<int> RunOnceAsync(TimeSpan interval)
     {
         using var source = new PdhDiskMetricsSource();
-        var disks = new WmiDiskInfoProvider().GetDisks();
+        var disks = new DiskInfoCache(new WmiDiskInfoProvider());
 
         // The source primed itself on construction; wait one interval so rates cover a full period.
         await Task.Delay(interval);
@@ -30,8 +30,7 @@ internal static class LiveView
         };
 
         using var source = new PdhDiskMetricsSource();
-        var infoProvider = new WmiDiskInfoProvider();
-        var disks = infoProvider.GetDisks();
+        var disks = new DiskInfoCache(new WmiDiskInfoProvider());
         bool redirected = Console.IsOutputRedirected;
         int previousLineCount = 0;
 
@@ -47,11 +46,6 @@ internal static class LiveView
             while (await timer.WaitForNextTickAsync(cts.Token))
             {
                 var samples = source.Sample();
-
-                // A disk we have no label for was probably just attached; refresh labels.
-                if (samples.Any(s => !disks.ContainsKey(s.DiskNumber)))
-                    disks = infoProvider.GetDisks();
-
                 var lines = new List<string> { $"DiskPulse  {DateTimeOffset.Now:G}  (Ctrl+C to exit)", "" };
                 lines.AddRange(DiskTable.Format(samples, disks));
 
