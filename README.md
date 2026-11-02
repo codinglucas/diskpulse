@@ -27,7 +27,7 @@ Right-click it and choose **Exit DiskPulse** to close it.
 | Dot | Meaning (defaults) |
 |---|---|
 | Green | No problems detected |
-| Yellow | Response time over 50 ms, or more than 2 requests waiting, for at least 5 s |
+| Yellow | For at least 5 s: response time over 50 ms, or more than 2 requests waiting with response time over 20 ms |
 | Red | Response time over 200 ms for at least 5 s, or **busy but not moving data**: at least 90% active while transferring under 1 MB/s for 10 s, a classic sign of a failing drive or bad cable |
 
 The overlay follows the Windows display language. English and Brazilian Portuguese are included.
