@@ -41,7 +41,7 @@
     <value>Pedidos acumulando</value>
   </data>
   <data name="Warning_HighQueue_Detail" xml:space="preserve">
-    <value>Há pelo menos {1:0} segundos, mais de {0:0} pedidos estão esperando por este disco. Ele não está dando conta do que está sendo pedido.</value>
+    <value>Há pelo menos {1:0} segundos, mais de {0:0} pedidos estão esperando por este disco, e cada um leva em média mais de {2:0} ms. Ele não está dando conta do que está sendo pedido.</value>
   </data>
   <data name="Warning_VerySlowResponse_Title" xml:space="preserve">
     <value>Respostas muito lentas</value>
