@@ -13,7 +13,7 @@ internal static class WarningText
         DiskWarning.SlowResponse =>
             Strings.Format("Warning_SlowResponse_Detail", t.SlowResponseMs, t.SlowResponseDuration.TotalSeconds),
         DiskWarning.HighQueue =>
-            Strings.Format("Warning_HighQueue_Detail", t.HighQueueLength, t.HighQueueDuration.TotalSeconds),
+            Strings.Format("Warning_HighQueue_Detail", t.HighQueueLength, t.HighQueueDuration.TotalSeconds, t.HighQueueMinResponseMs),
         DiskWarning.VerySlowResponse =>
             Strings.Format("Warning_VerySlowResponse_Detail", t.VerySlowResponseMs, t.VerySlowResponseDuration.TotalSeconds),
         DiskWarning.BusyNotMoving =>

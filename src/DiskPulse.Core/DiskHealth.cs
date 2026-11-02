@@ -14,7 +14,10 @@ public enum DiskWarning
     /// <summary>Response time above <see cref="DiskThresholds.SlowResponseMs"/>, sustained.</summary>
     SlowResponse,
 
-    /// <summary>Queue length above <see cref="DiskThresholds.HighQueueLength"/>, sustained.</summary>
+    /// <summary>
+    /// Queue length above <see cref="DiskThresholds.HighQueueLength"/> with response time above
+    /// <see cref="DiskThresholds.HighQueueMinResponseMs"/>, sustained.
+    /// </summary>
     HighQueue,
 
     /// <summary>Response time above <see cref="DiskThresholds.VerySlowResponseMs"/>, sustained.</summary>
@@ -45,6 +48,9 @@ public sealed record DiskThresholds
     public TimeSpan SlowResponseDuration { get; init; } = TimeSpan.FromSeconds(5);
 
     public double HighQueueLength { get; init; } = 2;
+
+    /// <summary>A long queue alone is normal during big copies; it only counts once responses slow down too.</summary>
+    public double HighQueueMinResponseMs { get; init; } = 20;
     public TimeSpan HighQueueDuration { get; init; } = TimeSpan.FromSeconds(5);
 
     public double VerySlowResponseMs { get; init; } = 200;

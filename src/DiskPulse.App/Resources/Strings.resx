@@ -44,8 +44,8 @@
     <value>Requests piling up</value>
   </data>
   <data name="Warning_HighQueue_Detail" xml:space="preserve">
-    <value>For at least {1:0} seconds, more than {0:0} requests have been waiting for this disk. It can't keep up with what is being asked of it.</value>
-    <comment>{0} queue threshold, {1} duration s</comment>
+    <value>For at least {1:0} seconds, more than {0:0} requests have been waiting for this disk while each one took more than {2:0} ms on average. It can't keep up with what is being asked of it.</value>
+    <comment>{0} queue threshold, {1} duration s, {2} minimum response ms</comment>
   </data>
   <data name="Warning_VerySlowResponse_Title" xml:space="preserve">
     <value>Very slow responses</value>

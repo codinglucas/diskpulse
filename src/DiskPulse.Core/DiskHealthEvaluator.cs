@@ -40,7 +40,9 @@ public sealed class DiskHealthEvaluator(DiskThresholds? thresholds = null)
             intervalStart, now, t.BusyDuration);
         bool verySlow = state.VerySlow.Update(sample.ResponseMs > t.VerySlowResponseMs, intervalStart, now, t.VerySlowResponseDuration);
         bool slow = state.Slow.Update(sample.ResponseMs > t.SlowResponseMs, intervalStart, now, t.SlowResponseDuration);
-        bool queue = state.Queue.Update(sample.QueueLength > t.HighQueueLength, intervalStart, now, t.HighQueueDuration);
+        bool queue = state.Queue.Update(
+            sample.QueueLength > t.HighQueueLength && sample.ResponseMs > t.HighQueueMinResponseMs,
+            intervalStart, now, t.HighQueueDuration);
 
         var warnings = new List<DiskWarning>(3);
         if (busy)

@@ -77,7 +77,7 @@ public class DiskHealthEvaluatorTests
     [Fact]
     public void HighQueue_TurnsYellowWhenSustained()
     {
-        var status = Run(new DiskHealthEvaluator(), 5, t => Sample(t, queue: 3));
+        var status = Run(new DiskHealthEvaluator(), 5, t => Sample(t, queue: 3, responseMs: 30));
 
         Assert.Equal(DiskHealth.Warning, status.Health);
         Assert.Equal([DiskWarning.HighQueue], status.Warnings);
@@ -85,7 +85,18 @@ public class DiskHealthEvaluatorTests
 
     [Fact]
     public void QueueAtThreshold_IsOk() =>
-        Assert.Equal(DiskHealth.Ok, Run(new DiskHealthEvaluator(), 10, t => Sample(t, queue: 2)).Health);
+        Assert.Equal(DiskHealth.Ok, Run(new DiskHealthEvaluator(), 10, t => Sample(t, queue: 2, responseMs: 30)).Health);
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(20)] // The limit itself does not count as elevated.
+    public void HighQueue_WithFastResponses_IsOk(double responseMs)
+    {
+        // A big copy on a healthy disk: long queue, plenty of data moving, quick answers.
+        var status = Run(new DiskHealthEvaluator(), 30, t => Sample(t, queue: 8, responseMs: responseMs, activePercent: 100, readMBps: 150));
+
+        Assert.Equal(DiskHealth.Ok, status.Health);
+    }
 
     [Fact]
     public void BusyButNotMovingData_TurnsRedAfterTenSeconds()
