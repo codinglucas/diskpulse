@@ -4,12 +4,22 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <!-- Only for the notification-area icon (NotifyIcon); WPF has none of its own. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- WFAC010 asks WinForms apps to set DPI in code; this is a WPF app, which needs it in app.manifest. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
     <RootNamespace>DiskPulse.App</RootNamespace>
     <AssemblyName>DiskPulse</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- Only ship framework satellite assemblies for the languages DiskPulse supports. -->
     <SatelliteResourceLanguages>en;pt-BR</SatelliteResourceLanguages>
   </PropertyGroup>
+
+  <!-- WinForms names (Application, MessageBox, ContextMenu...) clash with WPF's; TrayIcon uses aliases instead. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DiskPulse.Core\DiskPulse.Core.csproj" />

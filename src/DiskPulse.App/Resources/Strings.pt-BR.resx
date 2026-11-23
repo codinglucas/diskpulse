@@ -13,23 +13,29 @@
   <data name="UnknownType" xml:space="preserve">
     <value>Tipo desconhecido</value>
   </data>
-  <data name="MetricsLine" xml:space="preserve">
-    <value>{0:0.0} ms   {1:0}% ativo   fila {2:0}   leitura {3:0.0} MB/s   gravação {4:0.0} MB/s</value>
+  <data name="Metric_Response" xml:space="preserve">
+    <value>{0:0.0} ms</value>
+  </data>
+  <data name="Metric_Active" xml:space="preserve">
+    <value>{0:0}% ativo</value>
+  </data>
+  <data name="Metric_Queue" xml:space="preserve">
+    <value>fila {0:0}</value>
+  </data>
+  <data name="Metric_Throughput" xml:space="preserve">
+    <value>leitura {0:0.0} MB/s   gravação {1:0.0} MB/s</value>
   </data>
   <data name="LatencyDetail" xml:space="preserve">
     <value>Tempo de resposta: leitura {0:0.0} ms, gravação {1:0.0} ms.</value>
   </data>
   <data name="StatusOk" xml:space="preserve">
-    <value>Nenhum problema detectado.</value>
+    <value>Desempenho normal. O DiskPulse mede só a velocidade; ainda não verifica os dados de saúde do disco.</value>
   </data>
   <data name="Waiting" xml:space="preserve">
     <value>Lendo os discos…</value>
   </data>
   <data name="NoDisks" xml:space="preserve">
     <value>Nenhum disco físico está enviando dados.</value>
-  </data>
-  <data name="MenuExit" xml:space="preserve">
-    <value>Sair do DiskPulse</value>
   </data>
   <data name="Warning_SlowResponse_Title" xml:space="preserve">
     <value>Respostas lentas</value>
@@ -54,5 +60,128 @@
   </data>
   <data name="Warning_BusyNotMoving_Detail" xml:space="preserve">
     <value>Há pelo menos {2:0} segundos, este disco está pelo menos {0:0}% ocupado, mas transferindo menos de {1:0.#} MB/s. Esse é um sinal clássico de disco com defeito ou cabo SATA ruim: o disco fica repetindo tentativas em vez de ler. Faça backup dos arquivos importantes e depois verifique ou troque o cabo.</value>
+  </data>
+  <data name="MenuShowOverlay" xml:space="preserve">
+    <value>Mostrar overlay</value>
+  </data>
+  <data name="MenuHideOverlay" xml:space="preserve">
+    <value>Ocultar overlay</value>
+  </data>
+  <data name="MenuClickThrough" xml:space="preserve">
+    <value>Ignorar cliques</value>
+  </data>
+  <data name="MenuSettings" xml:space="preserve">
+    <value>Configurações…</value>
+  </data>
+  <data name="MenuExit" xml:space="preserve">
+    <value>Sair do DiskPulse</value>
+  </data>
+  <data name="TrayAllOk" xml:space="preserve">
+    <value>desempenho dos discos normal</value>
+  </data>
+  <data name="TrayDiskWarning" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="TrayError" xml:space="preserve">
+    <value>não foi possível ler os discos</value>
+  </data>
+  <data name="HotkeyInUse" xml:space="preserve">
+    <value>O atalho {0} já está sendo usado por outro programa. Escolha outro nas Configurações.</value>
+  </data>
+  <data name="ClickThroughOnHint" xml:space="preserve">
+    <value>Ignorar cliques está ligado. Os cliques agora vão para a janela de baixo. Para mover o overlay ou desligar, use o ícone do DiskPulse na área de notificação.</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Configurações do DiskPulse</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>Geral</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+  <data name="Settings_LanguageSystem" xml:space="preserve">
+    <value>Igual ao Windows</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>Atalho para mostrar/ocultar</value>
+  </data>
+  <data name="Settings_HotkeyHint" xml:space="preserve">
+    <value>Clique na caixa e pressione o novo atalho.</value>
+  </data>
+  <data name="Settings_InvalidHotkey" xml:space="preserve">
+    <value>Use Ctrl, Alt ou Shift junto com uma letra, um número ou uma tecla F. As teclas F também funcionam sozinhas.</value>
+  </data>
+  <data name="Settings_StartWithWindows" xml:space="preserve">
+    <value>Iniciar com o Windows</value>
+  </data>
+  <data name="Settings_Overlay" xml:space="preserve">
+    <value>Overlay</value>
+  </data>
+  <data name="Settings_ClickThrough" xml:space="preserve">
+    <value>Ignorar cliques: os cliques vão para a janela de baixo</value>
+  </data>
+  <data name="Settings_Opacity" xml:space="preserve">
+    <value>Opacidade</value>
+  </data>
+  <data name="Settings_FontSize" xml:space="preserve">
+    <value>Tamanho da fonte</value>
+  </data>
+  <data name="Settings_Refresh" xml:space="preserve">
+    <value>Atualizar a cada</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="Settings_Metrics" xml:space="preserve">
+    <value>Mostrar</value>
+  </data>
+  <data name="Settings_ShowResponse" xml:space="preserve">
+    <value>Tempo de resposta</value>
+  </data>
+  <data name="Settings_ShowActive" xml:space="preserve">
+    <value>Tempo ativo</value>
+  </data>
+  <data name="Settings_ShowQueue" xml:space="preserve">
+    <value>Tamanho da fila</value>
+  </data>
+  <data name="Settings_ShowThroughput" xml:space="preserve">
+    <value>Velocidade de leitura e gravação</value>
+  </data>
+  <data name="Settings_Thresholds" xml:space="preserve">
+    <value>Alertas</value>
+  </data>
+  <data name="Settings_SlowResponse" xml:space="preserve">
+    <value>Amarelo quando o tempo de resposta passar de (ms)</value>
+  </data>
+  <data name="Settings_VerySlowResponse" xml:space="preserve">
+    <value>Vermelho quando o tempo de resposta passar de (ms)</value>
+  </data>
+  <data name="Settings_QueueLength" xml:space="preserve">
+    <value>Amarelo quando a fila passar de</value>
+  </data>
+  <data name="Settings_QueueMinResponse" xml:space="preserve">
+    <value>…e o tempo de resposta passar de (ms)</value>
+  </data>
+  <data name="Settings_BusyActive" xml:space="preserve">
+    <value>Vermelho quando o tempo ativo for pelo menos (%)</value>
+  </data>
+  <data name="Settings_BusyThroughput" xml:space="preserve">
+    <value>…transferindo menos de (MB/s)</value>
+  </data>
+  <data name="Settings_ForAtLeast" xml:space="preserve">
+    <value>por pelo menos (s)</value>
+  </data>
+  <data name="Settings_InvalidNumber" xml:space="preserve">
+    <value>"{0}" não é um número válido.</value>
+  </data>
+  <data name="Settings_RestoreDefaults" xml:space="preserve">
+    <value>Restaurar padrões</value>
+  </data>
+  <data name="Settings_Save" xml:space="preserve">
+    <value>Salvar</value>
+  </data>
+  <data name="Settings_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
   </data>
 </root>

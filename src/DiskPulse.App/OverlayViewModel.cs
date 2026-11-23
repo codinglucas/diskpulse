@@ -4,12 +4,15 @@ using DiskPulse.App.Resources;
 
 namespace DiskPulse.App;
 
-public sealed class OverlayViewModel : ObservableObject
+public sealed class OverlayViewModel(OverlayOptions options) : ObservableObject
 {
     private string? _message = Strings.Get("Waiting");
     private Brush _messageBrush = HealthBrushes.Muted;
+    private MetricsSnapshot? _last;
 
     public ObservableCollection<DiskRowViewModel> Disks { get; } = new();
+
+    public OverlayOptions Options { get; private set; } = options;
 
     /// <summary>Shown instead of, or above, the disk list: waiting, no disks, or an error.</summary>
     public string? Message
@@ -28,6 +31,7 @@ public sealed class OverlayViewModel : ObservableObject
 
     public void Update(MetricsSnapshot snapshot)
     {
+        _last = snapshot;
         var readings = snapshot.Readings;
         Message = readings.Count == 0 ? Strings.Get("NoDisks") : null;
         MessageBrush = HealthBrushes.Muted;
@@ -41,7 +45,17 @@ public sealed class OverlayViewModel : ObservableObject
         }
 
         for (int i = 0; i < readings.Count; i++)
-            Disks[i].Update(readings[i], snapshot.Thresholds);
+            Disks[i].Update(readings[i], snapshot.Thresholds, Options);
+    }
+
+    /// <summary>Applies new display options (or a new language) at once, without waiting for the next tick.</summary>
+    public void SetOptions(OverlayOptions options)
+    {
+        Options = options;
+        if (_last is not null && Message is null)
+            Update(_last);
+        else if (_last is null)
+            Message = Strings.Get("Waiting");
     }
 
     public void ShowError(string message)

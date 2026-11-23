@@ -14,24 +14,33 @@
   <data name="UnknownType" xml:space="preserve">
     <value>Unknown type</value>
   </data>
-  <data name="MetricsLine" xml:space="preserve">
-    <value>{0:0.0} ms   {1:0}% active   queue {2:0}   read {3:0.0} MB/s   write {4:0.0} MB/s</value>
-    <comment>{0} response ms, {1} active %, {2} queue length, {3} read MB/s, {4} write MB/s</comment>
+  <data name="Metric_Response" xml:space="preserve">
+    <value>{0:0.0} ms</value>
+    <comment>{0} = average response time in ms</comment>
+  </data>
+  <data name="Metric_Active" xml:space="preserve">
+    <value>{0:0}% active</value>
+    <comment>{0} = active time %</comment>
+  </data>
+  <data name="Metric_Queue" xml:space="preserve">
+    <value>queue {0:0}</value>
+    <comment>{0} = queue length</comment>
+  </data>
+  <data name="Metric_Throughput" xml:space="preserve">
+    <value>read {0:0.0} MB/s   write {1:0.0} MB/s</value>
+    <comment>{0} read MB/s, {1} write MB/s</comment>
   </data>
   <data name="LatencyDetail" xml:space="preserve">
     <value>Response time: read {0:0.0} ms, write {1:0.0} ms.</value>
   </data>
   <data name="StatusOk" xml:space="preserve">
-    <value>No problems detected.</value>
+    <value>Performance looks normal. DiskPulse measures speed only; it does not check the drive's health data yet.</value>
   </data>
   <data name="Waiting" xml:space="preserve">
     <value>Reading disks…</value>
   </data>
   <data name="NoDisks" xml:space="preserve">
     <value>No physical disks are reporting data.</value>
-  </data>
-  <data name="MenuExit" xml:space="preserve">
-    <value>Exit DiskPulse</value>
   </data>
   <data name="Warning_SlowResponse_Title" xml:space="preserve">
     <value>Slow responses</value>
@@ -60,5 +69,135 @@
   <data name="Warning_BusyNotMoving_Detail" xml:space="preserve">
     <value>For at least {2:0} seconds, this disk has been at least {0:0}% busy while transferring less than {1:0.#} MB/s. This is a classic sign of a failing drive or a bad SATA cable: the disk keeps retrying instead of reading. Back up your important files, then check or replace the cable.</value>
     <comment>{0} active %, {1} max MB/s, {2} duration s</comment>
+  </data>
+  <data name="MenuShowOverlay" xml:space="preserve">
+    <value>Show overlay</value>
+  </data>
+  <data name="MenuHideOverlay" xml:space="preserve">
+    <value>Hide overlay</value>
+  </data>
+  <data name="MenuClickThrough" xml:space="preserve">
+    <value>Click-through</value>
+    <comment>Clicks pass through the overlay to the window underneath</comment>
+  </data>
+  <data name="MenuSettings" xml:space="preserve">
+    <value>Settings…</value>
+  </data>
+  <data name="MenuExit" xml:space="preserve">
+    <value>Exit DiskPulse</value>
+  </data>
+  <data name="TrayAllOk" xml:space="preserve">
+    <value>disk performance normal</value>
+    <comment>Shown after 'DiskPulse - ' in the tray tooltip</comment>
+  </data>
+  <data name="TrayDiskWarning" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>{0} = disk, e.g. 'Disk 1'; {1} = warning title</comment>
+  </data>
+  <data name="TrayError" xml:space="preserve">
+    <value>can't read disk data</value>
+    <comment>Shown after 'DiskPulse - ' in the tray tooltip</comment>
+  </data>
+  <data name="HotkeyInUse" xml:space="preserve">
+    <value>The shortcut {0} is already used by another program. Choose another one in Settings.</value>
+    <comment>{0} = shortcut, e.g. Ctrl+Shift+D</comment>
+  </data>
+  <data name="ClickThroughOnHint" xml:space="preserve">
+    <value>Click-through is on. Clicks now go to the window underneath. To move the overlay or change this, use the DiskPulse icon in the notification area.</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>DiskPulse settings</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageSystem" xml:space="preserve">
+    <value>Same as Windows</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>Show/hide shortcut</value>
+  </data>
+  <data name="Settings_HotkeyHint" xml:space="preserve">
+    <value>Click the box, then press the new shortcut.</value>
+  </data>
+  <data name="Settings_InvalidHotkey" xml:space="preserve">
+    <value>Use Ctrl, Alt or Shift together with a letter, a number or an F key. F keys also work alone.</value>
+  </data>
+  <data name="Settings_StartWithWindows" xml:space="preserve">
+    <value>Start with Windows</value>
+  </data>
+  <data name="Settings_Overlay" xml:space="preserve">
+    <value>Overlay</value>
+  </data>
+  <data name="Settings_ClickThrough" xml:space="preserve">
+    <value>Click-through: clicks go to the window underneath</value>
+  </data>
+  <data name="Settings_Opacity" xml:space="preserve">
+    <value>Opacity</value>
+  </data>
+  <data name="Settings_FontSize" xml:space="preserve">
+    <value>Font size</value>
+  </data>
+  <data name="Settings_Refresh" xml:space="preserve">
+    <value>Refresh every</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0} s</value>
+    <comment>{0} = number of seconds</comment>
+  </data>
+  <data name="Settings_Metrics" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="Settings_ShowResponse" xml:space="preserve">
+    <value>Response time</value>
+  </data>
+  <data name="Settings_ShowActive" xml:space="preserve">
+    <value>Active time</value>
+  </data>
+  <data name="Settings_ShowQueue" xml:space="preserve">
+    <value>Queue length</value>
+  </data>
+  <data name="Settings_ShowThroughput" xml:space="preserve">
+    <value>Read and write speed</value>
+  </data>
+  <data name="Settings_Thresholds" xml:space="preserve">
+    <value>Warnings</value>
+  </data>
+  <data name="Settings_SlowResponse" xml:space="preserve">
+    <value>Yellow when response time is over (ms)</value>
+  </data>
+  <data name="Settings_VerySlowResponse" xml:space="preserve">
+    <value>Red when response time is over (ms)</value>
+  </data>
+  <data name="Settings_QueueLength" xml:space="preserve">
+    <value>Yellow when the queue is over</value>
+  </data>
+  <data name="Settings_QueueMinResponse" xml:space="preserve">
+    <value>…and response time is over (ms)</value>
+  </data>
+  <data name="Settings_BusyActive" xml:space="preserve">
+    <value>Red when active time is at least (%)</value>
+  </data>
+  <data name="Settings_BusyThroughput" xml:space="preserve">
+    <value>…while moving less than (MB/s)</value>
+  </data>
+  <data name="Settings_ForAtLeast" xml:space="preserve">
+    <value>for at least (s)</value>
+  </data>
+  <data name="Settings_InvalidNumber" xml:space="preserve">
+    <value>"{0}" is not a valid number.</value>
+    <comment>{0} = what the user typed</comment>
+  </data>
+  <data name="Settings_RestoreDefaults" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+  <data name="Settings_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Settings_Cancel" xml:space="preserve">
+    <value>Cancel</value>
   </data>
 </root>
