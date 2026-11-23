@@ -1,5 +1,8 @@
 # DiskPulse
 
+[![CI](https://github.com/codinglucas/diskpulse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/codinglucas/diskpulse/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 An open-source Windows overlay that shows real-time health metrics for every physical disk:
 response time, active time, queue length and throughput. It is built to make a struggling
 drive obvious at a glance.
@@ -55,7 +58,11 @@ dotnet test
 ```
 
 The unit tests cover the platform-independent engine (`DiskPulse.Core`), so they also run
-on macOS and Linux. Reading live counters needs Windows. On a non-English Windows install,
+on macOS and Linux. Reading live counters needs Windows.
+
+Every pull request and every push to `main` runs [CI](.github/workflows/ci.yml) on Windows with
+.NET 8. It builds the solution, runs the tests, and runs `DiskPulse.Console --diag` against the
+runner's real disks. On a non-English Windows install,
 follow [docs/localization-check.md](docs/localization-check.md).
 
 ## Project layout

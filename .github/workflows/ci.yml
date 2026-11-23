@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test (Windows, .NET 8)
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      # Installs the .NET 8 runtime the projects target, so tests run on real .NET 8.
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Show SDKs and runtimes
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=results.trx" --results-directory TestResults
+
+      # Reads real PhysicalDisk counters and WMI disk info on the runner. Fails if no disk reports data.
+      - name: Smoke test (DiskPulse.Console --diag)
+        run: dotnet run --project src/DiskPulse.Console --configuration Release --no-build -- --diag
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+          if-no-files-found: ignore
