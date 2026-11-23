@@ -1,6 +1,7 @@
 <Window x:Class="DiskPulse.App.OverlayWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DiskPulse.App"
         Title="DiskPulse"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -17,6 +18,7 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        <local:DotSizeConverter x:Key="DotSize" />
     </Window.Resources>
 
     <Border Background="#D91A1A1A"
@@ -47,15 +49,19 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <Ellipse Width="10"
-                                     Height="10"
+                            <!-- Sized from the font so the dot scales with the font-size setting. -->
+                            <Ellipse Width="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DotSize}}"
+                                     Height="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DotSize}}"
                                      Margin="0,4,8,0"
                                      VerticalAlignment="Top"
                                      Fill="{Binding StatusBrush}" />
 
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="{Binding Label}" Foreground="#FFEEEEEE" FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding Metrics}" Foreground="#FFBBBBBB" FontFamily="Consolas" />
+                                <TextBlock Text="{Binding Metrics}"
+                                           Foreground="#FFBBBBBB"
+                                           FontFamily="Consolas"
+                                           Visibility="{Binding HasMetrics, Converter={StaticResource BoolToVisibility}}" />
                                 <TextBlock Text="{Binding StatusText}"
                                            Foreground="{Binding StatusBrush}"
                                            FontWeight="SemiBold"
