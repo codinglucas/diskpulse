@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using DiskPulse.App.Resources;
 using DiskPulse.Core;
+using DiskPulse.Core.History;
+using DiskPulse.Core.Logging;
 using DiskPulse.Core.Settings;
 
 namespace DiskPulse.App;
@@ -13,6 +15,7 @@ public partial class App : Application
     private const string SingleInstanceName = @"Local\DiskPulse.SingleInstance";
 
     private readonly SettingsStore _store = new(SettingsStore.DefaultPath);
+    private readonly SampleHistory _history = new();
     private AppSettings _settings = new();
     private CultureInfo _windowsUICulture = CultureInfo.CurrentUICulture;
 
@@ -23,6 +26,7 @@ public partial class App : Application
     private GlobalHotkey? _hotkey;
     private MetricsService? _metrics;
     private SettingsWindow? _settingsWindow;
+    private MenuItem? _overlayExpandedItem;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -42,7 +46,7 @@ public partial class App : Application
         _settings = _store.Load();
         ApplyLanguage(_settings.Language);
 
-        _viewModel = new OverlayViewModel(OverlayOptions.From(_settings.Overlay));
+        _viewModel = new OverlayViewModel(OverlayOptions.From(_settings.Overlay), _history);
         _overlay = new OverlayWindow(_viewModel);
         _overlay.MovedByUser += (_, _) => SavePosition();
         _overlay.Loaded += (_, _) => MonitorPlacement.Restore(_overlay, _settings.Overlay);
@@ -54,6 +58,8 @@ public partial class App : Application
         _tray = new TrayIcon();
         _tray.ToggleOverlayRequested += (_, _) => ToggleOverlay();
         _tray.ClickThroughToggled += (_, _) => SetClickThrough(!_settings.Overlay.ClickThrough);
+        _tray.ExpandedToggled += (_, _) => SetExpanded(!_settings.Overlay.Expanded);
+        _tray.ExportRequested += (_, _) => ExportHistory(owner: null);
         _tray.SettingsRequested += (_, _) => OpenSettings();
         _tray.ExitRequested += (_, _) => Shutdown();
         _tray.SetState(TrayState.Waiting, Strings.Get("Waiting"));
@@ -68,8 +74,10 @@ public partial class App : Application
         _metrics = new MetricsService(
             _settings.RefreshInterval,
             _settings.Thresholds.ToDiskThresholds(),
+            _settings.Logging.ToLogOptions(),
             snapshot => Dispatcher.InvokeAsync(() => OnSnapshot(snapshot)),
-            message => Dispatcher.InvokeAsync(() => OnMetricsError(message)));
+            message => Dispatcher.InvokeAsync(() => OnMetricsError(message)),
+            message => Dispatcher.InvokeAsync(() => _tray!.ShowNotice(Strings.Format("LogFailed", message))));
         _metrics.Start();
     }
 
@@ -88,6 +96,7 @@ public partial class App : Application
 
     private void OnSnapshot(MetricsSnapshot snapshot)
     {
+        _history.Add(snapshot.Readings); // Before the overlay, which draws the sparkline from it.
         _viewModel!.Update(snapshot);
 
         var worst = snapshot.Readings.MaxBy(r => r.Status.Health);
@@ -131,6 +140,50 @@ public partial class App : Application
             _tray!.ShowNotice(Strings.Get("ClickThroughOnHint"));
     }
 
+    private void SetExpanded(bool expanded)
+    {
+        _settings.Overlay.Expanded = expanded;
+        ApplyOverlaySettings();
+        Save();
+        UpdateMenus();
+    }
+
+    /// <summary>Saves the in-memory history (up to 10 minutes, every disk) to a CSV file the user picks.</summary>
+    private void ExportHistory(Window? owner)
+    {
+        var readings = _history.All();
+        if (readings.Count == 0)
+        {
+            MessageBox.Show(Strings.Get("Export_Empty"), "DiskPulse", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = Strings.Get("Export_Title"),
+            Filter = Strings.Get("Export_Filter"),
+            DefaultExt = ".csv",
+            AddExtension = true,
+            FileName = $"DiskPulse_{readings[^1].Sample.Timestamp.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture)}.csv",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        };
+        bool chosen = owner is null ? dialog.ShowDialog() == true : dialog.ShowDialog(owner) == true;
+        if (!chosen)
+            return;
+
+        try
+        {
+            int rows;
+            using (var writer = new System.IO.StreamWriter(dialog.FileName, append: false, CsvFormat.Encoding))
+                rows = CsvFormat.Write(writer, readings);
+            _tray!.ShowNotice(Strings.Format("Export_Done", rows, dialog.FileName));
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            MessageBox.Show(Strings.Format("Export_Failed", ex.Message), "DiskPulse", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
     private void OpenSettings()
     {
         if (_settingsWindow is not null)
@@ -141,6 +194,7 @@ public partial class App : Application
 
         _settingsWindow = new SettingsWindow(_settings.Clone(), StartupRegistration.IsEnabled());
         _settingsWindow.Saved += (_, e) => ApplySettings(e.Settings, e.StartWithWindows);
+        _settingsWindow.ExportRequested += (_, _) => ExportHistory(_settingsWindow);
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
         _settingsWindow.Activate();
@@ -173,7 +227,7 @@ public partial class App : Application
         }
 
         ApplyOverlaySettings();
-        _metrics!.Update(_settings.RefreshInterval, _settings.Thresholds.ToDiskThresholds());
+        _metrics!.Update(_settings.RefreshInterval, _settings.Thresholds.ToDiskThresholds(), _settings.Logging.ToLogOptions());
         if (startWithWindows != StartupRegistration.IsEnabled())
             StartupRegistration.SetEnabled(startWithWindows);
         Save();
@@ -225,7 +279,9 @@ public partial class App : Application
     private void UpdateMenus()
     {
         bool visible = _overlay?.IsVisible ?? _settings.Overlay.Visible;
-        _tray?.SetMenuState(visible, _settings.Overlay.ClickThrough);
+        _tray?.SetMenuState(visible, _settings.Overlay.ClickThrough, _settings.Overlay.Expanded);
+        if (_overlayExpandedItem is not null)
+            _overlayExpandedItem.IsChecked = _settings.Overlay.Expanded;
     }
 
     /// <summary>Right-click menu on the overlay itself. Unreachable while click-through is on; the tray menu covers that.</summary>
@@ -233,6 +289,10 @@ public partial class App : Application
     {
         var clickThrough = new MenuItem { Header = Strings.Get("MenuClickThrough") };
         clickThrough.Click += (_, _) => SetClickThrough(true);
+        _overlayExpandedItem = new MenuItem { Header = Strings.Get("MenuExpanded"), IsCheckable = true, IsChecked = _settings.Overlay.Expanded };
+        _overlayExpandedItem.Click += (_, _) => SetExpanded(!_settings.Overlay.Expanded);
+        var export = new MenuItem { Header = Strings.Get("MenuExport") };
+        export.Click += (_, _) => ExportHistory(owner: null);
         var settings = new MenuItem { Header = Strings.Get("MenuSettings") };
         settings.Click += (_, _) => OpenSettings();
         var hide = new MenuItem { Header = Strings.Get("MenuHideOverlay") };
@@ -240,6 +300,6 @@ public partial class App : Application
         var exit = new MenuItem { Header = Strings.Get("MenuExit") };
         exit.Click += (_, _) => Shutdown();
 
-        return new ContextMenu { Items = { clickThrough, settings, hide, new Separator(), exit } };
+        return new ContextMenu { Items = { clickThrough, _overlayExpandedItem, export, settings, hide, new Separator(), exit } };
     }
 }
