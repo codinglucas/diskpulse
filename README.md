@@ -31,6 +31,8 @@ over a disk to see what its warnings mean.
 | Move the overlay | Drag it with the left mouse button. It remembers where you left it on each monitor. |
 | Show or hide it | Press **Ctrl+Shift+D**, or click the DiskPulse icon in the notification area. |
 | Stop it blocking clicks | Turn on **Click-through** from the right-click menu or the tray icon. Clicks then go to the window underneath; use the tray icon to turn it off again. |
+| See the last minute | Turn on **Expanded view** from either menu. Each disk gets a 60-second graph of its response time; the dashed line is the yellow-warning limit. |
+| Save what just happened | Choose **Export last 10 minutes…** from either menu or the settings window. DiskPulse keeps the last 10 minutes in memory and saves them as one CSV file, wherever you choose. |
 | Change settings | Right-click the overlay or the tray icon and choose **Settings…** |
 | Exit | **Exit DiskPulse** in either menu. |
 
@@ -48,10 +50,33 @@ The settings window lets you change:
 
 - **General:** language (English, Português (Brasil), or the same as Windows), the show/hide shortcut, and starting with Windows.
 - **Overlay:** click-through, opacity, font size, refresh rate (0.5 to 5 s), and which metrics to show.
+- **Overlay:** also the expanded view with the 60-second graph.
 - **Warnings:** every yellow and red limit above, and how long each must last.
+- **CSV log:** off by default. When on, every reading is appended to one CSV file per disk
+  (`DiskPulse_disk0_20261124_153000.csv`) in the folder you choose, by default
+  `%LOCALAPPDATA%\DiskPulse\Logs`. A new file starts when one reaches the size limit
+  (10 MB by default) and the oldest are deleted beyond the number you keep (10 per disk).
+  DiskPulse only ever deletes files with that exact name pattern. Put the log on a disk
+  you are *not* troubleshooting, so the log itself doesn't add load to it.
 
 Settings are saved in `%APPDATA%\DiskPulse\settings.json`. If that file gets damaged,
 DiskPulse starts with defaults and keeps the damaged copy as `settings.invalid.json`.
+
+### CSV columns
+
+The log and the export use the same columns. Numbers always use `.` as the decimal
+separator, whatever your Windows region. If Excel puts everything in one column, use
+**Data → From Text/CSV** and choose comma as the delimiter.
+
+| Column | Meaning |
+|---|---|
+| `timestamp` | Local time with UTC offset, e.g. `2026-11-24T15:30:00.000-03:00` |
+| `disk`, `drive_letters`, `model`, `type` | Which disk |
+| `health`, `warnings` | `Ok`, `Warning` or `Critical`, and the active warnings separated by `;` |
+| `response_ms`, `read_response_ms`, `write_response_ms` | Average time per request |
+| `active_percent` | 100 − idle time |
+| `queue_length` | Requests waiting at that moment |
+| `read_mbps`, `write_mbps` | MB/s (1 MB = 1,048,576 bytes, like Task Manager) |
 
 ### Games
 
