@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using DiskPulse.Core.Logging;
 
 namespace DiskPulse.Core.Settings;
 
@@ -25,6 +26,8 @@ public sealed class AppSettings
 
     public ThresholdSettings Thresholds { get; set; } = new();
 
+    public LoggingSettings Logging { get; set; } = new();
+
     [JsonIgnore]
     public TimeSpan RefreshInterval => TimeSpan.FromSeconds(RefreshIntervalSeconds);
 
@@ -45,6 +48,8 @@ public sealed class AppSettings
         Overlay.Normalize();
         Thresholds ??= new ThresholdSettings();
         Thresholds.Normalize();
+        Logging ??= new LoggingSettings();
+        Logging.Normalize();
     }
 }
 
@@ -69,6 +74,9 @@ public sealed class OverlaySettings
     public bool ShowActiveTime { get; set; } = true;
     public bool ShowQueueLength { get; set; } = true;
     public bool ShowThroughput { get; set; } = true;
+
+    /// <summary>Shows a 60-second response-time graph under each disk.</summary>
+    public bool Expanded { get; set; }
 
     /// <summary>Device name of the monitor the overlay was last moved to, e.g. <c>\\.\DISPLAY2</c>.</summary>
     public string? LastMonitor { get; set; }
@@ -145,6 +153,50 @@ public sealed class ThresholdSettings
         BusyActivePercent = Limits.Clamp(BusyActivePercent, 1, 100, Defaults.BusyActivePercent);
         BusyMaxThroughputMBps = Limits.Clamp(BusyMaxThroughputMBps, 0.01, 100_000, Defaults.BusyMaxThroughputMBps);
         BusySeconds = Limits.Clamp(BusySeconds, MinSeconds, MaxSeconds, Defaults.BusyDuration.TotalSeconds);
+    }
+}
+
+/// <summary>Optional CSV log, one file per disk. Off by default: DiskPulse writes nothing unless asked.</summary>
+public sealed class LoggingSettings
+{
+    public const double MinFileSizeMB = 1;
+    public const double MaxFileSizeMBLimit = 1000;
+    public const int MaxFilesToKeep = 1000;
+
+    public bool Enabled { get; set; }
+
+    /// <summary>Full path of the log folder. "" means <see cref="DefaultFolder"/>.</summary>
+    public string Folder { get; set; } = "";
+
+    /// <summary>A new file is started once the current one reaches this size.</summary>
+    public double MaxFileSizeMB { get; set; } = 10;
+
+    /// <summary>Files kept per disk, the current one included. Older ones are deleted.</summary>
+    public int FilesToKeep { get; set; } = 10;
+
+    public static string DefaultFolder =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DiskPulse", "Logs");
+
+    [JsonIgnore]
+    public string EffectiveFolder => Folder.Length == 0 ? DefaultFolder : Folder;
+
+    /// <summary>What the logger needs, or null when logging is off.</summary>
+    public CsvLogOptions? ToLogOptions() =>
+        Enabled ? new CsvLogOptions(EffectiveFolder, (long)(MaxFileSizeMB * Units.BytesPerMegabyte), FilesToKeep) : null;
+
+    /// <summary>True for a full path such as <c>D:\Logs</c>; a relative path would depend on the working folder.</summary>
+    public static bool IsValidFolder(string? folder) =>
+        !string.IsNullOrWhiteSpace(folder) &&
+        folder.IndexOfAny(Path.GetInvalidPathChars()) < 0 &&
+        Path.IsPathFullyQualified(folder);
+
+    public void Normalize()
+    {
+        Folder = Folder?.Trim() ?? "";
+        if (Folder.Length > 0 && !IsValidFolder(Folder))
+            Folder = "";
+        MaxFileSizeMB = Limits.Clamp(MaxFileSizeMB, MinFileSizeMB, MaxFileSizeMBLimit, 10);
+        FilesToKeep = Math.Clamp(FilesToKeep, 1, MaxFilesToKeep);
     }
 }
 

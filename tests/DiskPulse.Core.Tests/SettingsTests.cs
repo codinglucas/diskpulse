@@ -135,4 +135,63 @@ public class SettingsTests
         Assert.Equal(10, original.Overlay.Positions[@"\\.\DISPLAY1"].X);
         Assert.Equal(DiskThresholds.Default.SlowResponseMs, original.Thresholds.SlowResponseMs);
     }
+
+    [Fact]
+    public void Logging_IsOffByDefault()
+    {
+        var settings = new AppSettings();
+
+        Assert.False(settings.Logging.Enabled);
+        Assert.Null(settings.Logging.ToLogOptions());
+        Assert.False(settings.Overlay.Expanded);
+    }
+
+    [Fact]
+    public void Logging_ToLogOptions_UsesDefaultFolderAndBytes()
+    {
+        var logging = new LoggingSettings { Enabled = true, MaxFileSizeMB = 2, FilesToKeep = 3 };
+
+        var options = logging.ToLogOptions();
+
+        Assert.Equal(new DiskPulse.Core.Logging.CsvLogOptions(LoggingSettings.DefaultFolder, 2 * 1024 * 1024, 3), options);
+    }
+
+    [Theory]
+    [InlineData("relative\\logs")]
+    [InlineData("logs")]
+    [InlineData("   ")]
+    public void Logging_Normalize_DropsFoldersThatAreNotFullPaths(string folder)
+    {
+        var logging = new LoggingSettings { Folder = folder };
+
+        logging.Normalize();
+
+        Assert.Equal("", logging.Folder);
+        Assert.Equal(LoggingSettings.DefaultFolder, logging.EffectiveFolder);
+    }
+
+    [Fact]
+    public void Logging_Normalize_KeepsAFullPath()
+    {
+        string folder = Path.Combine(Path.GetTempPath(), "DiskPulse logs");
+        var logging = new LoggingSettings { Folder = "  " + folder + " " };
+
+        logging.Normalize();
+
+        Assert.Equal(folder, logging.Folder);
+    }
+
+    [Fact]
+    public void Logging_Normalize_ClampsSizes()
+    {
+        var settings = new AppSettings { Logging = null! };
+        settings.Normalize();
+        settings.Logging.MaxFileSizeMB = double.NaN;
+        settings.Logging.FilesToKeep = 0;
+
+        settings.Normalize();
+
+        Assert.Equal(10, settings.Logging.MaxFileSizeMB);
+        Assert.Equal(1, settings.Logging.FilesToKeep);
+    }
 }
