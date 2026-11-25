@@ -200,4 +200,64 @@
   <data name="Settings_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="MenuExpanded" xml:space="preserve">
+    <value>Expanded view</value>
+  </data>
+  <data name="MenuExport" xml:space="preserve">
+    <value>Export last 10 minutes…</value>
+  </data>
+  <data name="Sparkline_Caption" xml:space="preserve">
+    <value>last 60 s · peak {0:0.0} ms · dashed line = {1:0} ms</value>
+    <comment>{0} = highest response time in the graph, {1} = slow-response threshold</comment>
+  </data>
+  <data name="Export_Title" xml:space="preserve">
+    <value>Export last 10 minutes</value>
+  </data>
+  <data name="Export_Filter" xml:space="preserve">
+    <value>CSV files (*.csv)|*.csv</value>
+    <comment>File dialog filter: keep the |*.csv part</comment>
+  </data>
+  <data name="Export_Empty" xml:space="preserve">
+    <value>There is nothing to export yet. DiskPulse keeps the last 10 minutes of readings while it runs.</value>
+  </data>
+  <data name="Export_Done" xml:space="preserve">
+    <value>Saved {0} rows to {1}</value>
+    <comment>{0} = number of rows, {1} = file path</comment>
+  </data>
+  <data name="Export_Failed" xml:space="preserve">
+    <value>Could not save the file: {0}</value>
+    <comment>{0} = error message</comment>
+  </data>
+  <data name="LogFailed" xml:space="preserve">
+    <value>CSV logging stopped: {0} Check the log folder in Settings.</value>
+    <comment>{0} = error message</comment>
+  </data>
+  <data name="Settings_Expanded" xml:space="preserve">
+    <value>Expanded view: 60-second response-time graph</value>
+  </data>
+  <data name="Settings_Logging" xml:space="preserve">
+    <value>CSV log</value>
+  </data>
+  <data name="Settings_LogEnabled" xml:space="preserve">
+    <value>Save every reading to a CSV file per disk</value>
+  </data>
+  <data name="Settings_LogFolder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="Settings_Browse" xml:space="preserve">
+    <value>Browse…</value>
+  </data>
+  <data name="Settings_LogMaxSize" xml:space="preserve">
+    <value>New file after (MB)</value>
+  </data>
+  <data name="Settings_LogKeep" xml:space="preserve">
+    <value>Files kept per disk</value>
+  </data>
+  <data name="Settings_LogHint" xml:space="preserve">
+    <value>Older DiskPulse log files in this folder are deleted automatically. Choose a folder on a disk you are not troubleshooting.</value>
+  </data>
+  <data name="Settings_InvalidFolder" xml:space="preserve">
+    <value>"{0}" is not a full folder path, such as D:\DiskPulse logs.</value>
+    <comment>{0} = folder typed by the user</comment>
+  </data>
 </root>

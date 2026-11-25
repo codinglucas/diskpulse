@@ -41,6 +41,9 @@ public partial class SettingsWindow : Window
 
     public event EventHandler<SettingsSavedEventArgs>? Saved;
 
+    /// <summary>The export button; exporting uses the app's history, not anything in this form.</summary>
+    public event EventHandler? ExportRequested;
+
     private void Fill(AppSettings s, bool startWithWindows)
     {
         Select(LanguageBox, s.Language);
@@ -57,6 +60,13 @@ public partial class SettingsWindow : Window
         ShowActiveBox.IsChecked = o.ShowActiveTime;
         ShowQueueBox.IsChecked = o.ShowQueueLength;
         ShowThroughputBox.IsChecked = o.ShowThroughput;
+        ExpandedBox.IsChecked = o.Expanded;
+
+        var log = s.Logging;
+        LogEnabledBox.IsChecked = log.Enabled;
+        LogFolderBox.Text = log.EffectiveFolder;
+        SetNumber(LogMaxSizeBox, log.MaxFileSizeMB);
+        SetNumber(LogKeepBox, log.FilesToKeep);
 
         var t = s.Thresholds;
         SetNumber(SlowMsBox, t.SlowResponseMs);
@@ -87,6 +97,13 @@ public partial class SettingsWindow : Window
         o.ShowActiveTime = ShowActiveBox.IsChecked == true;
         o.ShowQueueLength = ShowQueueBox.IsChecked == true;
         o.ShowThroughput = ShowThroughputBox.IsChecked == true;
+        o.Expanded = ExpandedBox.IsChecked == true;
+
+        var log = s.Logging;
+        log.Enabled = LogEnabledBox.IsChecked == true;
+        log.Folder = ReadFolder(log.Enabled);
+        log.MaxFileSizeMB = ReadNumber(LogMaxSizeBox);
+        log.FilesToKeep = (int)Math.Round(ReadNumber(LogKeepBox));
 
         var t = s.Thresholds;
         t.SlowResponseMs = ReadNumber(SlowMsBox);
@@ -117,6 +134,33 @@ public partial class SettingsWindow : Window
 
         Saved?.Invoke(this, new SettingsSavedEventArgs(updated, StartWithWindowsBox.IsChecked == true));
         Close();
+    }
+
+    private void OnBrowseLogFolder(object sender, RoutedEventArgs e)
+    {
+        string current = LogFolderBox.Text.Trim();
+        var dialog = new Microsoft.Win32.OpenFolderDialog
+        {
+            InitialDirectory = LoggingSettings.IsValidFolder(current) && System.IO.Directory.Exists(current) ? current : "",
+        };
+        if (dialog.ShowDialog(this) == true)
+            LogFolderBox.Text = dialog.FolderName;
+    }
+
+    private void OnExport(object sender, RoutedEventArgs e) => ExportRequested?.Invoke(this, EventArgs.Empty);
+
+    /// <summary>"" when the box shows the default folder, so the default can move with the user profile.</summary>
+    private string ReadFolder(bool required)
+    {
+        string text = LogFolderBox.Text.Trim();
+        if (string.Equals(text, LoggingSettings.DefaultFolder, StringComparison.OrdinalIgnoreCase) || (text.Length == 0 && !required))
+            return "";
+        if (LoggingSettings.IsValidFolder(text))
+            return text;
+
+        LogFolderBox.Focus();
+        LogFolderBox.SelectAll();
+        throw new FormatException(Strings.Format("Settings_InvalidFolder", text));
     }
 
     /// <summary>Resets the form only. Language and "start with Windows" are kept; Save still applies.</summary>

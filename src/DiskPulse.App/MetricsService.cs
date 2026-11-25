@@ -1,10 +1,8 @@
 using DiskPulse.Core;
+using DiskPulse.Core.Logging;
 using DiskPulse.Windows;
 
 namespace DiskPulse.App;
-
-/// <summary>Everything the overlay needs for one disk on one tick.</summary>
-public sealed record DiskReading(DiskSample Sample, DiskInfo Info, DiskStatus Status);
 
 public sealed record MetricsSnapshot(IReadOnlyList<DiskReading> Readings, DiskThresholds Thresholds);
 
@@ -15,24 +13,29 @@ public sealed record MetricsSnapshot(IReadOnlyList<DiskReading> Readings, DiskTh
 /// </summary>
 /// <remarks>
 /// A failed tick reports the error and the loop carries on, so a temporary problem clears by
-/// itself on the next good tick instead of stopping monitoring until restart.
+/// itself on the next good tick instead of stopping monitoring until restart. The CSV log is
+/// written here too, off the UI thread; a log error stops logging until the settings change,
+/// but never stops monitoring.
 /// </remarks>
 public sealed class MetricsService(
     TimeSpan interval,
     DiskThresholds thresholds,
+    CsvLogOptions? logging,
     Action<MetricsSnapshot> onSnapshot,
-    Action<string> onError) : IDisposable
+    Action<string> onError,
+    Action<string> onLogError) : IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private Task? _loop;
 
     // Swapped as a whole so the loop never sees an interval from one update and thresholds from another.
-    private volatile Options _options = new(interval, thresholds);
+    private volatile Options _options = new(interval, thresholds, logging);
 
     public void Start() => _loop ??= Task.Run(() => RunAsync(_cts.Token));
 
     /// <summary>Applies new settings from the next tick on. Health history is kept.</summary>
-    public void Update(TimeSpan newInterval, DiskThresholds newThresholds) => _options = new Options(newInterval, newThresholds);
+    public void Update(TimeSpan newInterval, DiskThresholds newThresholds, CsvLogOptions? newLogging) =>
+        _options = new Options(newInterval, newThresholds, newLogging);
 
     public void Dispose()
     {
@@ -50,6 +53,8 @@ public sealed class MetricsService(
     private async Task RunAsync(CancellationToken cancellationToken)
     {
         PdhDiskMetricsSource? source = null;
+        CsvDiskLogger? logger = null;
+        CsvLogOptions? loggerOptions = null;
         try
         {
             var disks = new DiskInfoCache(new WmiDiskInfoProvider());
@@ -64,6 +69,12 @@ public sealed class MetricsService(
                 if (timer.Period != options.Interval)
                     timer.Period = options.Interval;
                 evaluator.Thresholds = options.Thresholds;
+                if (options.Logging != loggerOptions)
+                {
+                    logger?.Dispose();
+                    loggerOptions = options.Logging;
+                    logger = loggerOptions is null ? null : new CsvDiskLogger(loggerOptions);
+                }
 
                 try
                 {
@@ -81,6 +92,7 @@ public sealed class MetricsService(
                         .Select(s => new DiskReading(s, disks.Resolve(s), evaluator.Evaluate(s)))
                         .ToList();
                     onSnapshot(new MetricsSnapshot(readings, options.Thresholds));
+                    logger = WriteLog(logger, readings);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -96,6 +108,27 @@ public sealed class MetricsService(
         finally
         {
             source?.Dispose();
+            logger?.Dispose();
+        }
+    }
+
+    /// <summary>Returns the logger to keep using, or null after a failure (folder gone, disk full, no permission).</summary>
+    private CsvDiskLogger? WriteLog(CsvDiskLogger? logger, IReadOnlyList<DiskReading> readings)
+    {
+        if (logger is null)
+            return null;
+
+        try
+        {
+            logger.Write(readings);
+            return logger;
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException
+                                       or System.Security.SecurityException)
+        {
+            logger.Dispose();
+            onLogError(ex.Message);
+            return null; // Retried only when the logging settings change.
         }
     }
 
@@ -112,5 +145,5 @@ public sealed class MetricsService(
         }
     }
 
-    private sealed record Options(TimeSpan Interval, DiskThresholds Thresholds);
+    private sealed record Options(TimeSpan Interval, DiskThresholds Thresholds, CsvLogOptions? Logging);
 }

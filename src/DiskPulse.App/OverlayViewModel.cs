@@ -1,11 +1,16 @@
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using DiskPulse.App.Resources;
+using DiskPulse.Core;
+using DiskPulse.Core.History;
 
 namespace DiskPulse.App;
 
-public sealed class OverlayViewModel(OverlayOptions options) : ObservableObject
+/// <param name="history">Recent readings, already including the snapshot passed to <see cref="Update"/>.</param>
+public sealed class OverlayViewModel(OverlayOptions options, SampleHistory history) : ObservableObject
 {
+    public static readonly TimeSpan SparklineWindow = TimeSpan.FromSeconds(60);
+
     private string? _message = Strings.Get("Waiting");
     private Brush _messageBrush = HealthBrushes.Muted;
     private MetricsSnapshot? _last;
@@ -45,8 +50,16 @@ public sealed class OverlayViewModel(OverlayOptions options) : ObservableObject
         }
 
         for (int i = 0; i < readings.Count; i++)
-            Disks[i].Update(readings[i], snapshot.Thresholds, Options);
+            Disks[i].Update(readings[i], snapshot.Thresholds, Options, Options.Expanded ? BuildSparkline(readings[i], snapshot.Thresholds) : null);
     }
+
+    private SparklineData BuildSparkline(DiskReading reading, DiskThresholds thresholds) =>
+        SparklineBuilder.Build(
+            history.ForDisk(reading.Sample.DiskNumber, SparklineWindow).Select(r => (r.Sample.Timestamp, r.Sample.ResponseMs)),
+            reading.Sample.Timestamp,
+            SparklineWindow,
+            thresholds.SlowResponseMs,
+            DiskHealthEvaluator.MaxSampleGap);
 
     /// <summary>Applies new display options (or a new language) at once, without waiting for the next tick.</summary>
     public void SetOptions(OverlayOptions options)

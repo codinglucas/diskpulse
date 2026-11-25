@@ -2,15 +2,16 @@ using System.Text;
 using System.Windows.Media;
 using DiskPulse.App.Resources;
 using DiskPulse.Core;
+using DiskPulse.Core.History;
 using DiskPulse.Core.Settings;
 
 namespace DiskPulse.App;
 
 /// <summary>Which metrics the overlay shows, from <see cref="OverlaySettings"/>.</summary>
-public sealed record OverlayOptions(bool ResponseTime, bool ActiveTime, bool QueueLength, bool Throughput)
+public sealed record OverlayOptions(bool ResponseTime, bool ActiveTime, bool QueueLength, bool Throughput, bool Expanded)
 {
     public static OverlayOptions From(OverlaySettings settings) =>
-        new(settings.ShowResponseTime, settings.ShowActiveTime, settings.ShowQueueLength, settings.ShowThroughput);
+        new(settings.ShowResponseTime, settings.ShowActiveTime, settings.ShowQueueLength, settings.ShowThroughput, settings.Expanded);
 }
 
 /// <summary>One disk in the overlay. Updated in place each tick so an open tooltip stays open.</summary>
@@ -23,6 +24,8 @@ public sealed class DiskRowViewModel(int diskNumber) : ObservableObject
     private string _statusText = "";
     private string _explanation = "";
     private Brush _statusBrush = HealthBrushes.Ok;
+    private SparklineData? _sparkline;
+    private string _sparklineCaption = "";
 
     public int DiskNumber { get; } = diskNumber;
 
@@ -59,7 +62,22 @@ public sealed class DiskRowViewModel(int diskNumber) : ObservableObject
 
     public Brush StatusBrush { get => _statusBrush; private set => SetField(ref _statusBrush, value); }
 
-    public void Update(DiskReading reading, DiskThresholds thresholds, OverlayOptions options)
+    /// <summary>Last 60 seconds of response time; null in compact mode, which hides the graph.</summary>
+    public SparklineData? Sparkline
+    {
+        get => _sparkline;
+        private set
+        {
+            if (SetField(ref _sparkline, value))
+                OnPropertyChanged(nameof(HasSparkline));
+        }
+    }
+
+    public bool HasSparkline => Sparkline is not null;
+
+    public string SparklineCaption { get => _sparklineCaption; private set => SetField(ref _sparklineCaption, value); }
+
+    public void Update(DiskReading reading, DiskThresholds thresholds, OverlayOptions options, SparklineData? sparkline)
     {
         var (sample, info, status) = reading;
 
@@ -67,6 +85,8 @@ public sealed class DiskRowViewModel(int diskNumber) : ObservableObject
         Metrics = FormatMetrics(sample, options);
         StatusText = string.Join(" · ", status.Warnings.Select(WarningText.Title));
         StatusBrush = HealthBrushes.For(status.Health);
+        Sparkline = sparkline;
+        SparklineCaption = sparkline is null ? "" : Strings.Format("Sparkline_Caption", sparkline.Peak, thresholds.SlowResponseMs);
 
         var explanation = new StringBuilder();
         if (status.Warnings.Count == 0)

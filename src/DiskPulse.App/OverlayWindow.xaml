@@ -18,7 +18,7 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-        <local:DotSizeConverter x:Key="DotSize" />
+        <local:FontScaleConverter x:Key="FontScale" />
     </Window.Resources>
 
     <Border Background="#D91A1A1A"
@@ -50,8 +50,8 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- Sized from the font so the dot scales with the font-size setting. -->
-                            <Ellipse Width="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DotSize}}"
-                                     Height="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource DotSize}}"
+                            <Ellipse Width="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource FontScale}, ConverterParameter=0.8}"
+                                     Height="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource FontScale}, ConverterParameter=0.8}"
                                      Margin="0,4,8,0"
                                      VerticalAlignment="Top"
                                      Fill="{Binding StatusBrush}" />
@@ -62,6 +62,16 @@
                                            Foreground="#FFBBBBBB"
                                            FontFamily="Consolas"
                                            Visibility="{Binding HasMetrics, Converter={StaticResource BoolToVisibility}}" />
+                                <StackPanel Margin="0,3,0,1" Visibility="{Binding HasSparkline, Converter={StaticResource BoolToVisibility}}">
+                                    <local:Sparkline Data="{Binding Sparkline}"
+                                                     Stroke="{Binding StatusBrush}"
+                                                     HorizontalAlignment="Left"
+                                                     Width="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource FontScale}, ConverterParameter=20}"
+                                                     Height="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource FontScale}, ConverterParameter=2.5}" />
+                                    <TextBlock Text="{Binding SparklineCaption}"
+                                               Foreground="#FF999999"
+                                               FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource FontScale}, ConverterParameter=0.85}" />
+                                </StackPanel>
                                 <TextBlock Text="{Binding StatusText}"
                                            Foreground="{Binding StatusBrush}"
                                            FontWeight="SemiBold"

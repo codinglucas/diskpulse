@@ -27,6 +27,8 @@ internal sealed class TrayIcon : IDisposable
     private readonly Forms.NotifyIcon _icon;
     private readonly Forms.ToolStripMenuItem _toggleOverlay = new();
     private readonly Forms.ToolStripMenuItem _clickThrough = new();
+    private readonly Forms.ToolStripMenuItem _expanded = new();
+    private readonly Forms.ToolStripMenuItem _export = new();
     private readonly Forms.ToolStripMenuItem _settings = new();
     private readonly Forms.ToolStripMenuItem _exit = new();
     private readonly Dictionary<TrayState, Drawing.Icon> _icons;
@@ -45,11 +47,13 @@ internal sealed class TrayIcon : IDisposable
 
         _toggleOverlay.Click += (_, _) => ToggleOverlayRequested?.Invoke(this, EventArgs.Empty);
         _clickThrough.Click += (_, _) => ClickThroughToggled?.Invoke(this, EventArgs.Empty);
+        _expanded.Click += (_, _) => ExpandedToggled?.Invoke(this, EventArgs.Empty);
+        _export.Click += (_, _) => ExportRequested?.Invoke(this, EventArgs.Empty);
         _settings.Click += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
         _exit.Click += (_, _) => ExitRequested?.Invoke(this, EventArgs.Empty);
 
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.AddRange(new Forms.ToolStripItem[] { _toggleOverlay, _clickThrough, _settings, new Forms.ToolStripSeparator(), _exit });
+        menu.Items.AddRange(new Forms.ToolStripItem[] { _toggleOverlay, _clickThrough, _expanded, _export, _settings, new Forms.ToolStripSeparator(), _exit });
 
         _icon = new Forms.NotifyIcon
         {
@@ -69,6 +73,8 @@ internal sealed class TrayIcon : IDisposable
 
     public event EventHandler? ToggleOverlayRequested;
     public event EventHandler? ClickThroughToggled;
+    public event EventHandler? ExpandedToggled;
+    public event EventHandler? ExportRequested;
     public event EventHandler? SettingsRequested;
     public event EventHandler? ExitRequested;
 
@@ -79,20 +85,23 @@ internal sealed class TrayIcon : IDisposable
         _icon.Text = text.Length <= MaxTooltipLength ? text : text[..(MaxTooltipLength - 1)] + "…";
     }
 
-    public void SetMenuState(bool overlayVisible, bool clickThrough)
+    public void SetMenuState(bool overlayVisible, bool clickThrough, bool expanded)
     {
         _overlayVisible = overlayVisible;
         _toggleOverlay.Text = Strings.Get(overlayVisible ? "MenuHideOverlay" : "MenuShowOverlay");
         _clickThrough.Checked = clickThrough;
+        _expanded.Checked = expanded;
     }
 
     /// <summary>Re-reads menu labels, after the language changes.</summary>
     public void RefreshTexts()
     {
         _clickThrough.Text = Strings.Get("MenuClickThrough");
+        _expanded.Text = Strings.Get("MenuExpanded");
+        _export.Text = Strings.Get("MenuExport");
         _settings.Text = Strings.Get("MenuSettings");
         _exit.Text = Strings.Get("MenuExit");
-        SetMenuState(_overlayVisible, _clickThrough.Checked);
+        SetMenuState(_overlayVisible, _clickThrough.Checked, _expanded.Checked);
     }
 
     public void ShowNotice(string text) => _icon.ShowBalloonTip(5000, "DiskPulse", text, Forms.ToolTipIcon.Info);
